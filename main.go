@@ -2,11 +2,24 @@ package main
 
 import (
 	"groupie-tracker/handlers"
+	"groupie-tracker/middleware"
 	"log"
 	"net/http"
+	"os"
+	"time"
 )
 
 func main() {
+
+	initializeData()
+	mux := setUpCustomMultiplexer()
+	server, port := setUpCustomServer(mux)
+	runServer(server, port)
+
+}
+
+// Initalizes required data.
+func initializeData() {
 	// load data used by handlers
 	if err := handlers.FetchAll(); err != nil {
 		log.Printf("Failed to fetch data: %v", err)
@@ -17,7 +30,10 @@ func main() {
 	if err := handlers.GeocodeAllLocations(); err != nil {
 		log.Printf("Failed to geocode locations: %v", err)
 	}
+}
 
+// Sets up custom multiplexer (mux)
+func setUpCustomMultiplexer() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HomeHandler)
 
@@ -33,7 +49,35 @@ func main() {
 	// than a page. Registered without a trailing slash so it is an exact match
 	// and no other path is caught by it.
 	mux.HandleFunc("/search", handlers.SearchHandler)
+	return mux
+}
 
-	log.Println("Server running at http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+// Sets up custom server
+func setUpCustomServer(mux *http.ServeMux) (*http.Server, string) {
+
+	// TCP default port, can be overriden by PORT env variable
+	port := "8080"
+	port_override := os.Getenv("PORT")
+	if port_override != "" {
+		port = port_override
+	}
+
+	// Custom server as opposed to http generic server
+	server := &http.Server{
+		Addr:         ":" + port,
+		Handler:      middleware.SecureHeaders(mux),
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	return server, port
+}
+
+func runServer(server *http.Server, port string) {
+	log.Println("Listening on http://localhost:" + port)
+	server_error := server.ListenAndServe()
+	if server_error != nil {
+		log.Printf("server stopped: %v", server_error)
+		os.Exit(1)
+	}
 }
