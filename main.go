@@ -13,12 +13,12 @@ func main() {
 
 	initializeData()
 	mux := setUpCustomMultiplexer()
-	server, port := setUpCustomServer(mux)
-	runServer(server, port)
+	server := setUpCustomServer(mux)
+	runServer(server)
 
 }
 
-// Initalizes required data.
+// Initializes required data.
 func initializeData() {
 	// load data used by handlers
 	if err := handlers.FetchAll(); err != nil {
@@ -53,7 +53,7 @@ func setUpCustomMultiplexer() *http.ServeMux {
 }
 
 // Sets up custom server
-func setUpCustomServer(mux *http.ServeMux) (*http.Server, string) {
+func setUpCustomServer(mux *http.ServeMux) *http.Server {
 
 	// TCP default port, can be overriden by PORT env variable
 	port := "8080"
@@ -70,11 +70,12 @@ func setUpCustomServer(mux *http.ServeMux) (*http.Server, string) {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
-	return server, port
+	return server
 }
 
-func runServer(server *http.Server, port string) {
-	log.Println("Listening on http://localhost:" + port)
+func runServer(server *http.Server) {
+	// server.Addr already holds ":<port>", so it doubles as the logged URL.
+	log.Println("Listening on http://localhost" + server.Addr)
 	server_error := server.ListenAndServe()
 	if server_error != nil {
 		log.Printf("server stopped: %v", server_error)
