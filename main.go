@@ -3,6 +3,7 @@ package main
 import (
 	"groupie-tracker/handlers"
 	"groupie-tracker/middleware"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -10,6 +11,9 @@ import (
 )
 
 func main() {
+
+	logFile := initLog()
+	defer logFile.Close()
 
 	initializeData()
 	mux := setUpCustomMultiplexer()
@@ -88,4 +92,23 @@ func runServer(server *http.Server) {
 		log.Printf("server stopped: %v", server_error)
 		os.Exit(1)
 	}
+}
+
+func initLog() *os.File {
+	// Check the logs directory
+	err := os.MkdirAll("logs", 0o775)
+	if err != nil {
+		log.Fatalf("Error opening the log directory: %v", err)
+	}
+	// Open (or create) the log file in the append mode so past records are kept.
+	logFile, err := os.OpenFile("logs/groupie-tracker_server.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	}
+	// Write every log line to groupie-tracker_server.log & terminal
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(multiWriter)
+	log.SetFlags(log.Ldate | log.Ltime)
+
+	return logFile
 }
