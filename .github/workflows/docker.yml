@@ -93,3 +93,32 @@ jobs:
                 # layer, including the build stage's, not just the ones that end
                 # up in the final image.
                 cache-to: type=gha,mode=max,scope=app
+    Smoke_Test: 
+        # Only runs if the images were built abd pushed successfully.
+        needs: Build_And_Push
+        runs-on: ubuntu-latest
+        steps:
+        # Needed so we can log in and pull the image we just published.
+        - name: Log in to GHCR
+          run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+        - name: Run app image and smoke test it
+          run: |
+            # Start the published image on the runner. Port 8081 on the host
+            # maps to 8080 inside, which is where the Go app listens.
+            docker run -d --name groupie_tracker_smoke -p 8081:8080 ghcr.io/${{ github.repository }}:latest
+
+            # The container takes a moment to start listening. Try once a
+            # second for ten seconds, stop as soon as a request succeeds.
+            for _ in $(seq 1 10); do curl -sf http://localhost:8081/ >/dev/null && break; sleep 1; done
+
+            docker logs groupie_tracker_smoke
+
+            # Actual checks: the home page must return 200.
+            curl -sf http://localhost:8081/ >/dev/null
+
+            # A nonexistent path must return 404, not 200 and not a crash.
+            test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8081/does-not-exist)" = "404"
+
+            # Clean up so the step's exit code is the only thing that matters.
+            docker rm -f ascii_art_web_smoke
