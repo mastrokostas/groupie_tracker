@@ -29,6 +29,15 @@ func (handler secure_headers_handler) ServeHTTP(response_writer http.ResponseWri
 		response_writer.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	}
 
+	// HTTP Strict-Transport-Security tells browsers to reach this origin over
+	// HTTPS only. It is opt-in through an environment variable because sending
+	// it from a plain-HTTP origin (local development on localhost) pins that
+	// origin to HTTPS in the developer's browser and makes it unreachable.
+	// Enable it only where TLS actually terminates in front of the app.
+	if os.Getenv("ENABLE_HSTS") == "true" {
+		response_writer.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+	}
+
 	// CSP
 
 	// Every directive starts from 'self' and then names the exact outside hosts
