@@ -1,4 +1,4 @@
-name: Build and push Images
+name: Build and push image
 
 on:
     push:
@@ -17,7 +17,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              # Pulls conde into the runner
+              # Pulls code into the runner
               uses: actions/checkout@v6
 
             - name: Set up Go
@@ -26,7 +26,7 @@ jobs:
               with:
                 # Installs the go version in go.mod
                 go-version-file: go.mod
-                # Nothing to cahce
+                # Nothing to cache
                 cache: false
             
             - name: Run go vet
@@ -64,9 +64,8 @@ jobs:
               id: meta_app
               uses: docker/metadata-action@v6
               with:
-                # github.repository is "mastrokostas/ascii-art-web", so this
-                # resolves to ghcr.io/mastrokostas/ascii-art-web, the exact
-                # name docker-compose.yml already pulls.
+                # github.repository is "mastrokostas/groupie_tracker", so this
+                # resolves to ghcr.io/mastrokostas/groupie_tracker.
                 images: ghcr.io/${{ github.repository }}
                 tags: |
                     # Tag "latest", but only on the default branch (main).
@@ -81,9 +80,9 @@ jobs:
               with: 
                 # Build context: the repo root, where the app Dockerfile lives.
                 context: .
-                # Upoload after building, rather than leaving it on the runner.
+                # Upload after building, rather than leaving it on the runner.
                 push: true
-                 # The two tag lines produced by the step above.
+                # The two tag lines produced by the step above.
                 tags: ${{ steps.meta_app.outputs.tags }}
                 # Metadata baked into the image (source repo, commit, build time).
                 labels: ${{ steps.meta_app.outputs.labels }}
@@ -91,6 +90,6 @@ jobs:
                 # build steps are reused instead of redone.
                 cache-from: type=gha,scope=app
                 # Save this run's layers for next time. mode=max keeps every
-                # layer, not just the final one. scope=app keeps this cache
-                # separate from the nginx image's cache.
+                # layer, including the build stage's, not just the ones that end
+                # up in the final image.
                 cache-to: type=gha,mode=max,scope=app
