@@ -40,7 +40,7 @@ func setUpCustomMultiplexer() *http.ServeMux {
 	mux.HandleFunc("/artist", handlers.ArtistHandler)
 
 	// create a file server that serves static assets (CSS, images, etc.) from the "static" directory
-	static_file_server := http.FileServer(http.Dir("static"))
+	static_file_server := http.FileServer(middleware.NoListFileSystem{Fs: http.Dir("static")})
 	// register the file server under the "/static/" URL path; StripPrefix removes the leading
 	// "/static/" so that a request for "/static/css/style.css" maps to the file "static/css/style.css"
 	mux.Handle("/static/", http.StripPrefix("/static/", static_file_server))
@@ -73,6 +73,7 @@ func setUpCustomServer(mux *http.ServeMux) *http.Server {
 	return server
 }
 
+// Runs the custom server and logs error
 func runServer(server *http.Server) {
 	// server.Addr already holds ":<port>", so it doubles as the logged URL.
 	log.Println("Listening on http://localhost" + server.Addr)
