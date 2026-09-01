@@ -25,7 +25,7 @@ jobs:
               uses: actions/setup-go@v6
               with:
                 # Installs the go version in go.mod
-                go-version-file: goo.mod
+                go-version-file: go.mod
                 # Nothing to cahce
                 cache: false
             
