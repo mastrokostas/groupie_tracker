@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ .A.Name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Figtree, the typeface used across every page -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap">
+    <!-- External stylesheet served from the static/css directory -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Leaflet, the map library, from a CDN like the font above -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="artist-page">
+     <div class="card artist-card">
+    <img src="{{.A.Image}}" alt="{{.A.Name}}">
+    <h3>{{ .A.Name }}</h3>
+    <p>Members:</p>
+    <ul>
+        {{range $member := .A.Members}}
+        <li>{{ $member }}</li>
+        {{end}}
+    </ul>
+    <p>Creation Date: {{.A.CreationDate}}</p>
+    <p>First Album: {{.A.FirstAlbum}}</p>
+    <ul>
+    {{range $location, $dates := .R.DatesLocations}}
+    <li>{{ formatLocation $location }}
+        <ul>
+            {{range $dates}}
+            <li>{{ . }}</li>
+            {{end}}
+        </ul>
+    </li>
+    {{end}}
+</ul>
+<div id="concert-map"></div>
+<script id="concert-map-data" type="application/json">{{ mapDataJSON .Stops }}</script>
+<a class="back-button" href="/">Back to the home page</a>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/map.js"></script>
+</body>
+</html>

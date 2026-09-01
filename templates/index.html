@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Groupie Tracker</title>
+    <!-- Figtree, the typeface used across every page -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap">
+    <!-- External stylesheet served from the static/css directory -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="home-page">
+
+    <!-- ==================================================================
+         The page header: the title on the left, the search box on the right,
+         both on one line. The bar sticks to the top of the viewport, so the
+         two stay reachable while the artist grid scrolls underneath it.
+         ================================================================== -->
+    <header class="page-header" id="page_header">
+
+        <h1>Groupie Tracker</h1>
+
+        <!-- ==============================================================
+             Search box. Every keystroke asks /search for suggestions, which
+             are listed underneath, each one labelled with the kind of thing
+             it is. While there is text in the box the search drives the grid
+             and the sidebar below it is switched off; clearing the box hands
+             the grid back to the filters. static/js/search.js does all of
+             that.
+             ============================================================== -->
+        <div class="search" id="search_box">
+            <input type="search"
+                   class="search-input"
+                   id="search_input"
+                   placeholder="Search artists, members, locations or dates"
+                   autocomplete="off"
+                   role="combobox"
+                   aria-label="Search artists, members, locations or dates"
+                   aria-expanded="false"
+                   aria-controls="search_suggestions"
+                   aria-autocomplete="list">
+            <ul class="search-suggestions"
+                id="search_suggestions"
+                role="listbox"
+                aria-label="Search suggestions"
+                hidden></ul>
+        </div>
+
+    </header>
+
+    <!-- Shown on narrow screens only, where the sidebar is folded away by
+         default so the artist grid keeps the full width of the page -->
+    <button type="button"
+            class="filters-toggle"
+            id="filters_toggle"
+            aria-expanded="false"
+            aria-controls="filters_sidebar">
+        Filters
+    </button>
+
+    <div class="home-layout">
+
+        <!-- ==============================================================
+             Filter sidebar. Every control here is read by
+             static/js/filters.js, which hides and shows the cards beside it
+             without the page ever reloading.
+             ============================================================== -->
+        <aside class="filters" id="filters_sidebar">
+
+            <div class="filters-header">
+                <h2 class="filters-title">Filters</h2>
+                <button type="button" class="filters-reset" id="filters_reset">Reset all</button>
+            </div>
+
+            <!-- Range filter 1: the year the band was created -->
+            <section class="filter-group">
+                <h3 class="filter-heading">Creation date</h3>
+                <div class="range-slider"
+                     data-range-name="creation"
+                     data-range-min="{{ .Filters.MinCreationYear }}"
+                     data-range-max="{{ .Filters.MaxCreationYear }}">
+                    <p class="range-readout">
+                        <span class="range-readout-low">{{ .Filters.MinCreationYear }}</span>
+                        <span class="range-readout-separator">&ndash;</span>
+                        <span class="range-readout-high">{{ .Filters.MaxCreationYear }}</span>
+                    </p>
+                    <!-- The two inputs lie on top of one another over a single
+                         track, which is what makes them read as one slider
+                         with two handles -->
+                    <div class="range-track">
+                        <span class="range-track-fill"></span>
+                        <input type="range"
+                               class="range-input range-input-low"
+                               min="{{ .Filters.MinCreationYear }}"
+                               max="{{ .Filters.MaxCreationYear }}"
+                               value="{{ .Filters.MinCreationYear }}"
+                               step="1"
+                               aria-label="Earliest creation year">
+                        <input type="range"
+                               class="range-input range-input-high"
+                               min="{{ .Filters.MinCreationYear }}"
+                               max="{{ .Filters.MaxCreationYear }}"
+                               value="{{ .Filters.MaxCreationYear }}"
+                               step="1"
+                               aria-label="Latest creation year">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Range filter 2: the year the first album came out -->
+            <section class="filter-group">
+                <h3 class="filter-heading">First album</h3>
+                <div class="range-slider"
+                     data-range-name="album"
+                     data-range-min="{{ .Filters.MinAlbumYear }}"
+                     data-range-max="{{ .Filters.MaxAlbumYear }}">
+                    <p class="range-readout">
+                        <span class="range-readout-low">{{ .Filters.MinAlbumYear }}</span>
+                        <span class="range-readout-separator">&ndash;</span>
+                        <span class="range-readout-high">{{ .Filters.MaxAlbumYear }}</span>
+                    </p>
+                    <div class="range-track">
+                        <span class="range-track-fill"></span>
+                        <input type="range"
+                               class="range-input range-input-low"
+                               min="{{ .Filters.MinAlbumYear }}"
+                               max="{{ .Filters.MaxAlbumYear }}"
+                               value="{{ .Filters.MinAlbumYear }}"
+                               step="1"
+                               aria-label="Earliest first album year">
+                        <input type="range"
+                               class="range-input range-input-high"
+                               min="{{ .Filters.MinAlbumYear }}"
+                               max="{{ .Filters.MaxAlbumYear }}"
+                               value="{{ .Filters.MaxAlbumYear }}"
+                               step="1"
+                               aria-label="Latest first album year">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Check box filter 1: how many people are in the band. Only the
+                 counts that occur in the data get a box. -->
+            <section class="filter-group">
+                <h3 class="filter-heading">Members</h3>
+                <div class="check-list check-list-inline">
+                    {{range .Filters.MemberCounts}}
+                    <label class="check-option">
+                        <input type="checkbox" class="member-checkbox" value="{{ . }}">
+                        <span>{{ . }}</span>
+                    </label>
+                    {{end}}
+                </div>
+            </section>
+
+            <!-- Check box filter 2: where the concerts were. The places are
+                 grouped under their country, so ticking a country is the way
+                 to pick every city inside it at once. -->
+            <section class="filter-group filter-group-locations">
+                <h3 class="filter-heading">Locations</h3>
+                <div class="country-list">
+                    {{range .Filters.Countries}}
+                    <details class="country-group">
+                        <summary class="country-summary">
+                            <label class="check-option country-option">
+                                <input type="checkbox" class="country-checkbox" value="{{ .Slug }}">
+                                <span class="country-name">{{ .Name }}</span>
+                            </label>
+                            <span class="country-count">{{ len .Places }}</span>
+                        </summary>
+                        <div class="place-list">
+                            {{range .Places}}
+                            <label class="check-option">
+                                <input type="checkbox" class="place-checkbox" value="{{ .Slug }}">
+                                <span>{{ .Name }}</span>
+                            </label>
+                            {{end}}
+                        </div>
+                    </details>
+                    {{end}}
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- ==============================================================
+             Results column: how many artists are showing, the grid itself,
+             and the message that replaces the grid when nothing matches.
+             ============================================================== -->
+        <main class="results">
+
+            <p class="result-count" id="result_count">{{ len .Cards }} of {{ len .Cards }} artists</p>
+
+            <div class="grid" id="artist_grid">
+                {{range .Cards}}
+                <!-- The data attributes are the only things the filters look
+                     at, so the values are worked out once in Go rather than
+                     being read back out of the visible text -->
+                <div class="card"
+                     data-artist-id="{{ .Artist.ID }}"
+                     data-creation-year="{{ .Artist.CreationDate }}"
+                     data-album-year="{{ .FirstAlbumYear }}"
+                     data-member-count="{{ .MemberCount }}"
+                     data-locations="{{ .LocationSlugs }}">
+                    <a href="/artist?id={{ .Artist.ID }}"><img src="{{ .Artist.Image }}" alt="{{ .Artist.Name }}"></a>
+                    <h3><a href="/artist?id={{ .Artist.ID }}">{{ .Artist.Name }}</a></h3>
+                    <p>Creation Date: {{ .Artist.CreationDate }}</p>
+                    <p>First Album: {{ .Artist.FirstAlbum }}</p>
+                </div>
+                {{end}}
+            </div>
+
+            <p class="empty-state" id="empty_state" hidden>No artists match these filters.</p>
+
+        </main>
+
+    </div>
+
+    <!-- Deferred scripts run in the order they are written, so filters.js has
+         published the hook search.js takes the grid over through by the time
+         search.js runs -->
+    <script src="/static/js/filters.js" defer></script>
+    <script src="/static/js/search.js" defer></script>
+
+</body>
+</html>

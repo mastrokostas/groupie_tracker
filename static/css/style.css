@@ -1,0 +1,1023 @@
+/* ==========================================================================
+   Shared base styles - apply to every page
+   --------------------------------------------------------------------------
+   The interface follows the Spotify look: a near black canvas, slightly
+   lighter raised surfaces for cards, one saturated green used only for the
+   primary action, and a geometric grotesque typeface.
+   ========================================================================== */
+
+/* Design tokens, so the same colours and measurements are reused everywhere */
+:root {
+
+    /* Surfaces, from the page background up to a card being hovered */
+    --color_background: #121212;
+    --color_surface: #181818;
+    --color_surface_hover: #282828;
+    --color_hairline: #2a2a2a;
+
+    /* The single accent colour, kept for the primary action only */
+    --color_accent: #1db954;
+    --color_accent_bright: #1ed760;
+
+    /* White for anything read first, grey for supporting information */
+    --color_text: #ffffff;
+    --color_text_muted: #b3b3b3;
+
+    /* Figtree is the closest freely available match to the geometric
+       grotesque Spotify uses for its own interface */
+    --font_stack: "Figtree", "Segoe UI", system-ui, sans-serif;
+
+    /* One easing curve keeps every transition feeling related */
+    --ease_standard: cubic-bezier(0.3, 0, 0.4, 1);
+
+    /* How tall the sticky header bar is. Everything that sticks underneath the
+       bar offsets itself from this. The heading inside the bar is sized in vw
+       units, so the real height is not the same on every screen and is measured
+       and written back over this value by static/js/filters.js. The number here
+       is only what the page uses for the moment before that script runs. */
+    --header_height: 120px;
+}
+
+/* Base page styling: font family, background colour and overall page padding */
+body {
+    font-family: var(--font_stack);
+    background-color: var(--color_background);
+    color: var(--color_text);
+    padding: 40px 32px;
+    margin: 0;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Main page heading. Set large and tightly tracked, and aligned to the left
+   edge of the grid below it rather than centred, the way a section heading
+   sits in the desktop app. */
+h1 {
+    margin: 0 0 32px 0;
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+    text-align: left;
+}
+
+/* Individual card: a raised dark surface that lightens on hover.
+   Used by the artist grid on the home page, the artist detail page and
+   the error page. */
+.card {
+    background: var(--color_surface);
+    border-radius: 8px;
+    padding: 16px;
+    width: auto;
+    text-align: left;
+    box-shadow: none;
+    transition: background-color 0.25s var(--ease_standard);
+}
+
+/* Image inside a card, cropped to a square so portraits of different
+   proportions all line up across a row */
+.card img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Links carry the card's own text colour rather than the browser default */
+.card a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Clearly visible focus ring, so the pages stay usable from the keyboard */
+a:focus-visible {
+    outline: 2px solid var(--color_text);
+    outline-offset: 3px;
+}
+
+/* The filters hide elements by setting the hidden attribute on them, and that
+   has to beat the display rules further down the file. Without this, a hidden
+   grid would still be laid out as a grid. */
+[hidden] {
+    display: none !important;
+}
+
+
+/* ==========================================================================
+   Home page (index.html)
+   ========================================================================== */
+
+/* The bar across the top of the home page, holding the title at the left hand
+   end and the search box at the right hand one. It stays at the top of the
+   viewport as the page scrolls, so both are always within reach.
+
+   The side and top margins pull the bar back out over the padding of the page,
+   and the same amounts are given back as padding. That leaves the title sitting
+   exactly where it did before, while the bar's own background reaches the edges
+   of the window, so nothing scrolls visibly through the gutters beside it. */
+.page-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin: -40px -32px 24px -32px;
+    padding: 24px 32px 20px 32px;
+    background-color: var(--color_background);
+    border-bottom: 1px solid var(--color_hairline);
+}
+
+/* The heading is one of the two things on the bar's single line, so the gap it
+   normally leaves underneath itself is dropped */
+.page-header h1 {
+    margin: 0;
+}
+
+/* Grid container that lays the artist cards out in evenly sized columns,
+   filling the width of the page */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    justify-content: initial;
+}
+
+/* Only the cards in the grid react to the pointer, because only they are
+   links through to another page */
+.grid .card:hover {
+    background-color: var(--color_surface_hover);
+}
+
+/* The artist name on a card. Long names are cut off rather than wrapped, so
+   every card in a row keeps the same height. */
+.grid .card h3 {
+    margin: 16px 0 6px 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* The creation date and first album lines underneath the name */
+.grid .card p {
+    margin: 0 0 2px 0;
+    color: var(--color_text_muted);
+    font-size: 13px;
+}
+
+/* The filter sidebar takes the left hand column and the results the right hand
+   one. The columns are aligned to the top rather than stretched, so the sidebar
+   keeps its own height and can stick as the page scrolls. */
+.home-layout {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+}
+
+/* The line above the grid saying how many artists came through the filters */
+.result-count {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color_text_muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Shown in place of the grid when the filters leave nothing behind */
+.empty-state {
+    margin: 0;
+    padding: 64px 0;
+    text-align: center;
+    font-size: 16px;
+    color: var(--color_text_muted);
+}
+
+
+/* ==========================================================================
+   Filter sidebar (home page)
+   ========================================================================== */
+
+/* A raised panel that follows the page down, with the long location list
+   scrolling inside it rather than pushing the panel past the bottom.
+   It comes to rest just under the sticky header rather than at the top of the
+   window, so the two never cover one another, and what is left of the window
+   below the bar is what the panel may grow to.
+   The dark colour scheme is declared here rather than on the whole page, so
+   only the controls this sidebar introduced are affected: without it the
+   browser draws an unticked check box as a solid white square, which is far
+   too loud against the panel behind it. */
+.filters {
+    position: sticky;
+    top: calc(var(--header_height) + 16px);
+    max-height: calc(100vh - var(--header_height) - 32px);
+    overflow-y: auto;
+    padding: 20px 16px;
+    border-radius: 8px;
+    background: var(--color_surface);
+    color-scheme: dark;
+}
+
+/* A thin scrollbar, so the panel's own scrolling stays unobtrusive */
+.filters::-webkit-scrollbar {
+    width: 8px;
+}
+
+.filters::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.filters::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: var(--color_hairline);
+}
+
+/* The title and the reset button, one at each end of the first line */
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.filters-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* The reset button carries the same pill treatment as the error page link and
+   the artist page back button, at the smaller size a secondary control inside
+   a sidebar calls for */
+.filters-reset {
+    padding: 7px 16px;
+    border: none;
+    border-radius: 500px;
+    background-color: var(--color_accent);
+    color: #000000;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease_standard),
+                transform 0.1s var(--ease_standard);
+}
+
+.filters-reset:hover {
+    background-color: var(--color_accent_bright);
+    transform: scale(1.04);
+}
+
+/* One filter, separated from the one above it by a hairline */
+.filter-group {
+    padding: 20px 0;
+    border-top: 1px solid var(--color_hairline);
+}
+
+.filter-group:first-of-type {
+    padding-top: 0;
+    border-top: none;
+}
+
+.filter-group:last-of-type {
+    padding-bottom: 0;
+}
+
+/* Small upper case label naming the filter underneath it */
+.filter-heading {
+    margin: 0 0 16px 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color_text_muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   Dual handle range sliders
+   -------------------------------------------------------------------------- */
+
+/* The "1970 - 2005" line above the track */
+.range-readout {
+    margin: 0 0 14px 0;
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.range-readout-separator {
+    margin: 0 4px;
+    color: var(--color_text_muted);
+}
+
+/* The groove both inputs are drawn over. It is a real element because the
+   inputs themselves are made transparent, so this is what is actually seen.
+   The side margins leave room for the thumbs at either end. */
+.range-track {
+    position: relative;
+    height: 4px;
+    margin: 0 7px 10px 7px;
+    border-radius: 2px;
+    background: var(--color_hairline);
+}
+
+/* The selected part of the groove, between the two handles. Its position and
+   width are written by static/js/filters.js as the handles move. */
+.range-track-fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--color_accent);
+}
+
+/* Both inputs are stretched over the same track and stripped of their own
+   appearance, so only their thumbs are visible. Pointer events are switched off
+   for the input as a whole and back on for the thumb alone, so whichever input
+   is on top does not swallow drags meant for the other one. */
+.range-input {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 14px;
+    margin: 0;
+    transform: translateY(-50%);
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    pointer-events: none;
+}
+
+/* The high handle sits above the low one by default. filters.js raises the low
+   one once it is dragged into the right hand half, so neither can be buried. */
+.range-input-low {
+    z-index: 3;
+}
+
+.range-input-high {
+    z-index: 4;
+}
+
+/* The handle itself, which each browser engine names differently */
+.range-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color_text);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.range-input::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color_text);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* Firefox draws a groove of its own, which would cover the track underneath */
+.range-input::-moz-range-track {
+    background: transparent;
+}
+
+/* Focus ring on the handle, so the sliders can be used from the keyboard */
+.range-input:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--color_accent_bright);
+    outline-offset: 2px;
+}
+
+.range-input:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--color_accent_bright);
+    outline-offset: 2px;
+}
+
+
+/* --------------------------------------------------------------------------
+   Check boxes
+   -------------------------------------------------------------------------- */
+
+.check-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* The member counts are single digits, so they read better side by side than
+   stacked one per line */
+.check-list-inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.check-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--color_text_muted);
+    cursor: pointer;
+    transition: color 0.2s var(--ease_standard);
+}
+
+.check-option:hover {
+    color: var(--color_text);
+}
+
+.check-option input[type="checkbox"] {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: var(--color_accent);
+    cursor: pointer;
+}
+
+
+/* --------------------------------------------------------------------------
+   Location filter: countries, each holding its own places
+   -------------------------------------------------------------------------- */
+
+.country-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+/* The country line: a triangle, the country's own check box, and how many
+   places it holds */
+.country-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    list-style: none;
+    transition: background-color 0.2s var(--ease_standard);
+}
+
+/* The default disclosure triangle is removed in both engines, because one of
+   our own is drawn below */
+.country-summary::-webkit-details-marker {
+    display: none;
+}
+
+.country-summary:hover {
+    background-color: var(--color_surface_hover);
+}
+
+/* The triangle, pointing right while the country is folded shut */
+.country-summary::before {
+    content: "";
+    flex: none;
+    width: 0;
+    height: 0;
+    border-left: 5px solid var(--color_text_muted);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+    transition: transform 0.2s var(--ease_standard);
+}
+
+/* and turned to point down once it is open */
+.country-group[open] > .country-summary::before {
+    transform: rotate(90deg);
+}
+
+/* The country's own label fills the space between the triangle and the count */
+.country-option {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--color_text);
+    font-weight: 500;
+}
+
+/* A long country name is cut off rather than wrapped onto a second line */
+.country-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.country-count {
+    flex: none;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--color_text_muted);
+}
+
+/* The places, indented under their country and marked off with a rule, so it is
+   obvious at a glance which country they belong to */
+.place-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-left: 13px;
+    padding: 8px 8px 12px 26px;
+    border-left: 1px solid var(--color_hairline);
+}
+
+/* Only used below the 900px breakpoint, where the sidebar folds away */
+.filters-toggle {
+    display: none;
+}
+
+
+/* ==========================================================================
+   Artist detail page (artist.html)
+   ========================================================================== */
+
+/* The artist page holds a single card. It is aligned to the top of the page
+   rather than centred vertically, because the concert list makes the page
+   taller than the viewport. The gradient behind it fades from a lighter
+   tone at the top down into the page background. */
+.artist-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-image: linear-gradient(180deg,
+                                      #2e2e2e 0%,
+                                      var(--color_background) 420px);
+}
+
+/* The artist card is the full content column of the page: it holds the
+   artwork, the name, the members and the concert dates */
+.artist-card {
+    width: min(900px, 100%);
+    padding: 40px 32px 64px 32px;
+    background: transparent;
+}
+
+/* The artwork sits at the top left at a fixed size, so it reads as cover art
+   rather than as a banner */
+.artist-card img {
+    width: 232px;
+    height: 232px;
+    border-radius: 4px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+/* The artist name, set as the largest type on the page */
+.artist-card h3 {
+    margin: 24px 0 16px 0;
+    font-size: clamp(40px, 8vw, 80px);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1;
+}
+
+/* The "Members:" label and the two fact lines */
+.artist-card p {
+    margin: 0 0 4px 0;
+    color: var(--color_text_muted);
+    font-size: 14px;
+}
+
+/* Member and concert date lists read better left aligned, and none of them
+   need bullet markers once the type carries the structure */
+.artist-card ul {
+    text-align: left;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* The member list, directly after the "Members:" label */
+.artist-card > ul:nth-of-type(1) {
+    margin: 4px 0 32px 0;
+}
+
+.artist-card > ul:nth-of-type(1) li {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* The concert list. Each location is separated from the next by a hairline,
+   the same way rows are separated in the desktop app. */
+.artist-card > ul:nth-of-type(2) {
+    margin-top: 32px;
+    border-top: 1px solid var(--color_hairline);
+}
+
+.artist-card > ul:nth-of-type(2) > li {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color_hairline);
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* The dates belonging to one location, listed underneath it */
+.artist-card > ul:nth-of-type(2) ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    margin-top: 8px;
+}
+
+.artist-card > ul:nth-of-type(2) ul li {
+    color: var(--color_text_muted);
+    font-size: 14px;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Link that takes the visitor back to the home page, styled as the one
+   primary action on the page */
+.back-button {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 12px 32px;
+    border-radius: 500px;
+    background-color: var(--color_accent);
+    color: #000000;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease_standard),
+                transform 0.1s var(--ease_standard);
+}
+
+
+/* ==========================================================================
+   Error page (error.html)
+   ========================================================================== */
+
+/* The error page has no card: the message sits directly on the page
+   background, centered both horizontally and vertically */
+.error-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 24px;
+    text-align: center;
+}
+
+/* The HTTP status code, shown large so it is the first thing the visitor reads */
+.error-code {
+    font-size: clamp(72px, 16vw, 160px);
+    font-weight: 800;
+    letter-spacing: -0.06em;
+    line-height: 1;
+    margin: 0;
+    color: var(--color_text);
+    text-align: center;
+}
+
+/* The explanation text sitting underneath the status code */
+.error-message {
+    font-size: 18px;
+    margin: 12px 0 32px 0;
+    color: var(--color_text_muted);
+}
+
+/* Link that takes the visitor back to the home page, styled as the one
+   primary action on the page */
+.error-link {
+    display: inline-block;
+    padding: 12px 32px;
+    border-radius: 500px;
+    background-color: var(--color_accent);
+    color: #000000;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease_standard),
+                transform 0.1s var(--ease_standard);
+}
+
+/* The link grows very slightly and brightens when the visitor hovers it */
+.error-link:hover {
+    background-color: var(--color_accent_bright);
+    transform: scale(1.04);
+}
+
+
+/* ==========================================================================
+   Screens too narrow for a column beside the grid
+   ========================================================================== */
+
+@media (max-width: 900px) {
+
+    /* The two columns become one, and the sidebar stacks above the results */
+    .home-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Kept out of the way behind a button, so a screen this size still opens on
+       the artists rather than on a screenful of filter controls */
+    .filters {
+        display: none;
+        position: static;
+        max-height: none;
+        overflow: visible;
+        margin-bottom: 24px;
+    }
+
+    /* The class the toggle button adds in static/js/filters.js */
+    .filters.filters-open {
+        display: block;
+    }
+
+    .filters-toggle {
+        display: inline-block;
+        margin-bottom: 24px;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 500px;
+        background-color: var(--color_accent);
+        color: #000000;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s var(--ease_standard);
+    }
+
+    .filters-toggle:hover {
+        background-color: var(--color_accent_bright);
+    }
+}
+
+
+/* ==========================================================================
+   Narrow screens
+   ========================================================================== */
+
+@media (max-width: 600px) {
+
+    body {
+        padding: 24px 16px;
+    }
+
+    /* The page is padded less at this size, so the amounts the header bar pulls
+       back out over that padding, and gives back as padding of its own, follow
+       it down */
+    .page-header {
+        margin: -24px -16px 16px -16px;
+        padding: 16px;
+    }
+
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .artist-card {
+        padding: 32px 16px 48px 16px;
+    }
+
+    /* The artwork shrinks so the name still has room next to the edge */
+    .artist-card img {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+
+/* ==========================================================================
+   Reduced motion: keep the colour feedback, drop the movement
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+    * {
+        transition-duration: 0.01ms !important;
+    }
+
+    .error-link:hover {
+        transform: none;
+    }
+
+    .filters-reset:hover {
+        transform: none;
+    }
+
+    /* The triangle still ends up pointing the right way, it just gets there
+       at once instead of turning */
+    .country-group[open] > .country-summary::before {
+        transform: rotate(90deg);
+    }
+}
+
+/* ---------- Concert map ---------- */
+
+#concert-map {
+    height: 380px;
+    margin: 1rem 0;
+    border: 1px solid var(--color_hairline);
+    border-radius: 8px;
+    background-color: var(--color_surface);
+}
+
+/* The map has no coordinates to show, so the container carries a message
+   instead of a Leaflet instance. */
+#concert-map.map-unavailable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 120px;
+    color: var(--color_text_muted);
+}
+
+/* Leaflet builds this marker from HTML rather than an image, so it is
+   styled here rather than supplied as a sprite. */
+.concert-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--color_surface);
+    border-radius: 50%;
+    background-color: var(--color_accent);
+    color: var(--color_text);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+
+/* ==========================================================================
+   Search bar - home page only
+   --------------------------------------------------------------------------
+   The box is the right hand end of the sticky header bar, level with the page
+   heading, and the suggestions hang underneath it. The list is taken out of the
+   flow so that opening it never pushes the grid down the page.
+   ========================================================================== */
+
+/* It gives room back to the heading before it shrinks below its own width, and
+   never grows past the width a line of results is comfortable to read at */
+.search {
+    position: relative;
+    flex: 0 1 480px;
+    max-width: 620px;
+    margin: 0;
+}
+
+/* A pill on the same raised surface as a card, so it reads as part of the
+   interface rather than as a browser control dropped on top of it */
+.search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 20px;
+    border: 1px solid var(--color_hairline);
+    border-radius: 999px;
+    background-color: var(--color_surface);
+    color: var(--color_text);
+    font-family: var(--font_stack);
+    font-size: 1rem;
+    transition: background-color 0.2s var(--ease_standard),
+                border-color 0.2s var(--ease_standard);
+}
+
+.search-input::placeholder {
+    color: var(--color_text_muted);
+}
+
+.search-input:hover {
+    background-color: var(--color_surface_hover);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color_accent);
+    background-color: var(--color_surface_hover);
+}
+
+/* The list overlays whatever is underneath it, and scrolls once it is longer
+   than the panel rather than running down the page */
+.search-suggestions {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    max-height: 340px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid var(--color_hairline);
+    border-radius: 12px;
+    background-color: var(--color_surface);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+}
+
+.search-suggestions::-webkit-scrollbar {
+    width: 8px;
+}
+
+.search-suggestions::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.search-suggestions::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: var(--color_hairline);
+}
+
+/* Two columns: what matched on the left, the kind of thing it is on the right.
+   The artist line, when there is one, sits underneath the label in the left
+   hand column. */
+.search-suggestion {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 4px 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s var(--ease_standard);
+}
+
+.search-suggestion.is-active {
+    background-color: var(--color_surface_hover);
+}
+
+.suggestion-label {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The type is the whole point of the row, so it is set apart as a small pill
+   rather than left to run on as more text */
+.suggestion-type {
+    justify-self: end;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background-color: var(--color_background);
+    color: var(--color_text_muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Which band a member or a location belongs to. Confined to the first column
+   so it sits under the label and not under the pill. */
+.suggestion-artist {
+    grid-column: 1;
+    color: var(--color_text_muted);
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* The one row a query with no matches gets. It is not a choice, so it takes
+   neither the pointer nor the highlight. */
+.search-suggestion-empty {
+    display: block;
+    color: var(--color_text_muted);
+    cursor: default;
+}
+
+/* The sidebar while the search is driving the grid. Its controls are disabled
+   in JavaScript, so this only has to say so. */
+.filters.filters-disabled {
+    opacity: 0.4;
+}
+
+@media (max-width: 900px) {
+
+    /* A heading this size and a search box no longer fit on one line, so the
+       bar stacks them instead. It still sticks to the top of the page. */
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    /* Full width under the heading, where there is no second column to line up
+       with */
+    .search {
+        flex: none;
+        max-width: none;
+    }
+}

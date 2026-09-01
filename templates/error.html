@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- The page title carries the status code so it is visible in the browser tab -->
+    <title>Error {{ .Code }} - Groupie Trackers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Figtree, the typeface used across every page -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;700;800&display=swap">
+    <!-- External stylesheet served from the static/css directory -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="error-page">
+
+    <div class="error-content">
+
+        <!-- HTTP status code passed in from renderError, for example 404 -->
+        <h1 class="error-code">{{ .Code }}</h1>
+
+        <!-- Human readable explanation passed in from renderError -->
+        <p class="error-message">{{ .Message }}</p>
+
+        <!-- Always give the visitor a way back to a working page -->
+        <a class="error-link" href="/">Back to the home page</a>
+
+    </div>
+
+</body>
+</html>
