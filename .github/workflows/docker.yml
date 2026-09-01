@@ -12,7 +12,7 @@ permissions:
     packages: write
 
 jobs:
-    test:
+    Test:
         # Pick machine type
         runs-on: ubuntu-latest
         steps:
@@ -34,3 +34,63 @@ jobs:
 
             - name: Run unit tests
               run: go test ./...
+
+    Build_And_Push:
+        # Make it wait for the testing to pass
+        needs: Test
+        # This is a fresh runner, so machine and checkout are set all over again
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Set up Docker Buildx
+              # Installs Buildx, Docker's newer builder
+              uses: docker/setup-buildx-action@v4
+
+            - name: Log in to GHCR
+              uses: docker/login-action@v4
+              with:
+                registry: ghcr.io
+                # github.actor is the username of whoever triggered the run
+                username: ${{ github.actor }}
+                # Automatic per-run token, GitHub injects it, this is where packages: write permission gets used
+                password: ${{ secrets.GITHUB_TOKEN }}
+
+            # Works out what the image should be called and which tags it gets.
+            # Builds nothing — it only produces text that the next step reads.
+            - name: Compute app tags
+              # Label for this step, so the build step below can reach its output.
+              id: meta_app
+              uses: docker/metadata-action@v6
+              with:
+                # github.repository is "mastrokostas/ascii-art-web", so this
+                # resolves to ghcr.io/mastrokostas/ascii-art-web, the exact
+                # name docker-compose.yml already pulls.
+                images: ghcr.io/${{ github.repository }}
+                tags: |
+                    # Tag "latest", but only on the default branch (main).
+                    type=raw,value=latest,enable={{is_default_branch}}
+                    # Also tag with the commit hash, e.g. sha-a1b2c3d, so every
+                    # build stays addressable by the commit it came from.
+                    type=sha
+
+            # Builds the app image and uploads it to GHCR
+            - name: Build and push app
+              uses: docker/build-push-action@v7
+              with: 
+                # Build context: the repo root, where the app Dockerfile lives.
+                context: .
+                # Upoload after building, rather than leaving it on the runner.
+                push: true
+                 # The two tag lines produced by the step above.
+                tags: ${{ steps.meta_app.outputs.tags }}
+                # Metadata baked into the image (source repo, commit, build time).
+                labels: ${{ steps.meta_app.outputs.labels }}
+                # Speed only. Restore layers saved by earlier runs so unchanged
+                # build steps are reused instead of redone.
+                cache-from: type=gha,scope=app
+                # Save this run's layers for next time. mode=max keeps every
+                # layer, not just the final one. scope=app keeps this cache
+                # separate from the nginx image's cache.
+                cache-to: type=gha,mode=max,scope=app
