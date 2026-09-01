@@ -26,6 +26,14 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// NotFoundHandler renders the site's 404 page. HomeHandler already produces it
+// for any unknown page path, but renderError is unexported, so this is the door
+// the static file server's middleware uses to reach the same page rather than
+// letting http.FileServer send its own plain text "404 page not found".
+func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
+	renderError(w, http.StatusNotFound, "Page not found")
+}
+
 func renderError(w http.ResponseWriter, statusCode int, message string) {
 	w.WriteHeader(statusCode)
 	tmpl, err := template.ParseFiles("templates/error.html")

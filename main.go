@@ -39,8 +39,14 @@ func setUpCustomMultiplexer() *http.ServeMux {
 
 	mux.HandleFunc("/artist", handlers.ArtistHandler)
 
-	// create a file server that serves static assets (CSS, images, etc.) from the "static" directory
-	static_file_server := http.FileServer(middleware.NoListFileSystem{Fs: http.Dir("static")})
+	// create a file server that serves static assets (CSS, images, etc.) from the
+	// "static" directory. NoListFileSystem stops the raw file tree being browsed,
+	// and ServeStaticOrNotFound renders the site's own 404 page for a missing
+	// asset instead of http.FileServer's plain text one.
+	static_file_server := middleware.ServeStaticOrNotFound(
+		middleware.NoListFileSystem{Fs: http.Dir("static")},
+		handlers.NotFoundHandler,
+	)
 	// register the file server under the "/static/" URL path; StripPrefix removes the leading
 	// "/static/" so that a request for "/static/css/style.css" maps to the file "static/css/style.css"
 	mux.Handle("/static/", http.StripPrefix("/static/", static_file_server))
