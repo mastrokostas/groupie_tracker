@@ -21,13 +21,13 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", handlers.HomeHandler)
 
+	mux.HandleFunc("/artist", handlers.ArtistHandler)
+
 	// create a file server that serves static assets (CSS, images, etc.) from the "static" directory
 	static_file_server := http.FileServer(http.Dir("static"))
 	// register the file server under the "/static/" URL path; StripPrefix removes the leading
 	// "/static/" so that a request for "/static/css/style.css" maps to the file "static/css/style.css"
 	mux.Handle("/static/", http.StripPrefix("/static/", static_file_server))
-
-	mux.HandleFunc("/artist", handlers.ArtistHandler)
 
 	// The search box calls this on every keystroke and gets JSON back rather
 	// than a page. Registered without a trailing slash so it is an exact match
