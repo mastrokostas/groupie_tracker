@@ -31,17 +31,37 @@ func (handler secure_headers_handler) ServeHTTP(response_writer http.ResponseWri
 
 	// CSP
 
-	// Keeps all resources first-party ('self'), no injected third-party script can run. Site only loads from /static/js. No inline <script> runs.
+	// Every directive starts from 'self' and then names the exact outside hosts
+	// the pages genuinely load from. Anything not listed is blocked by the
+	// browser, so injected markup has nowhere to pull code or styling from.
+	//
+	// The site has no inline <script>, no <style> block and no style="..."
+	// attribute, so no 'unsafe-inline' and no nonce is needed anywhere here.
+	// Every remote host below is a real dependency: remove one and the feature
+	// beside it stops working.
 	response_writer.Header().Set("Content-Security-Policy",
-		"default-src 'self';"+
-			"script-src 'self';"+
-			"style-src 'self';"+
-			"font-src 'self';"+
-			"img-src 'self';"+
-			"connect-src 'self';"+
-			"form-action 'self';"+
-			"frame-ancestors 'none';"+
-			"base-uri 'self';"+
+		// Fallback for any resource type not named below.
+		"default-src 'self'; "+
+			// unpkg.com serves the Leaflet library the artist page map runs on.
+			"script-src 'self' https://unpkg.com; "+
+			// unpkg.com serves Leaflet's stylesheet, and fonts.googleapis.com the
+			// Figtree stylesheet that all three templates link.
+			"style-src 'self' https://unpkg.com https://fonts.googleapis.com; "+
+			// That Figtree stylesheet points at the actual font files, which sit
+			// on a second Google host.
+			"font-src 'self' https://fonts.gstatic.com; "+
+			// unpkg.com holds Leaflet's marker icons, tile.openstreetmap.org the
+			// map tiles, and herokuapp.com the artist photos the API points at.
+			"img-src 'self' https://unpkg.com https://*.tile.openstreetmap.org https://groupietrackers.herokuapp.com; "+
+			// The search box only ever calls this site's own /search endpoint.
+			"connect-src 'self'; "+
+			// Forms may only submit back to this site.
+			"form-action 'self'; "+
+			// Nobody may embed this site in a frame; matches X-Frame-Options above.
+			"frame-ancestors 'none'; "+
+			// A <base> tag cannot re-point this page's relative URLs elsewhere.
+			"base-uri 'self'; "+
+			// No <object>, <embed> or <applet> at all.
 			"object-src 'none'")
 
 	// Hand the request on to the wrapped handler. The headers set above are
