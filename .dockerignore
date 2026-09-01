@@ -1,0 +1,11 @@
+# Keep the build context small. Nothing listed here is needed to compile or run
+# the server, and .git alone is most of the repository's size.
+.git
+.gitignore
+.documentation
+logs
+CLAUDE.md
+LICENSE
+README.md
+Dockerfile
+.dockerignore
